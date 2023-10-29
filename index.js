@@ -23,7 +23,8 @@ app.get('/getFuture', async (req, res) => {
   try {
     const countryName = req.query.countryName;
 
-    const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=exchange_rate,record_date&filter=country_currency_desc:in:(${countryName})&sort=-record_date`
+    const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/
+    rates_of_exchange?fields=exchange_rate,record_date&filter=country_currency_desc:in:(${countryName})&sort=-record_date`
 
     const response = await axios.get(apiUrl);
     
@@ -37,7 +38,6 @@ app.get('/getFuture', async (req, res) => {
     res.status(500).json({ error: 'An error occurred' });
   }
 });
-
 
 //works
 app.get('/gettingHistory', async (req, res) => {
@@ -192,7 +192,7 @@ app.get('/exchangeRates', async (req, res) => {
 //works: getting currency name 
 app.get('/apiCallGettingCurrency', async (req, res) => {
   try {
-    const apiUrl = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=country_currency_desc&page[size]=463'; // Replace with the actual API URL
+    const apiUrl = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=country_currency_desc&page[size]=167&filter=record_date:gte:2023-09-15'; // Replace with the actual API URL
 
     // Make a GET request to the external API
     const response = await axios.get(apiUrl);

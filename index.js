@@ -155,7 +155,7 @@ app.get('/exchangeRates', async (req, res) => {
       const exchangeRate  = response.data.data[0].exchange_rate;
       const name =  response.data.data[0].country_currency_desc;
 
-      const newMoney = currencyList[whereInCurrecyList] * exchangeRate;
+      const newMoney = (currencyList[whereInCurrecyList] * exchangeRate).toFixed(2);
       console.log(currencyList[whereInCurrecyList]);
 
       const usAmount = currencyList[whereInCurrecyList];

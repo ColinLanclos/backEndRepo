@@ -23,8 +23,7 @@ app.get('/getFuture', async (req, res) => {
   try {
     const countryName = req.query.countryName;
 
-    const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/
-    rates_of_exchange?fields=exchange_rate,record_date&filter=country_currency_desc:in:(${countryName})&sort=-record_date`
+    const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=exchange_rate,record_date&filter=country_currency_desc:in:(${countryName})&sort=-record_date`
 
     const response = await axios.get(apiUrl);
     
@@ -224,6 +223,8 @@ app.post('/login', async (req, res) => {
     });
 
     await client.connect();
+
+    
 
     // Check if the user exists in the database
     const userQuery = `SELECT "userName", "password", "salt", id FROM users WHERE "userName" = $1`;

@@ -120,18 +120,18 @@ app.get('/exchangeRates', async (req, res) => {
       database: process.env.DATABASE_NAME
     });
     client.connect();
-    console.log(req.query)
+    console.log(req.query);
 
-     //Get the list of countries from the query parameters
-    const { countries,currencies,id } = req.query;
-    //List of currencies that will be changed
-    //Email
-    //Date
+    // Get the list of countries from the query parameters
+    const { countries, currencies, id } = req.query;
+    // List of currencies that will be changed
+    // Email
+    // Date
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
     const day = String(currentDate.getDate()).padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;  
+    const formattedDate = `${year}-${month}-${day}`;
 
     if (!countries) {
       return res.status(400).json({ error: 'Countries parameter is required' });
@@ -143,43 +143,40 @@ app.get('/exchangeRates', async (req, res) => {
     // Initialize an object to store exchange rates
     const exchangeRates = {};
 
-    //whereInCurrencyList
-    whereInCurrecyList = 0;
+    // whereInCurrencyList
+    whereInCurrencyList = 0;
     // Loop through the list of countries and make API requests for each
     for (const country of countryList) {
-
       const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=country_currency_desc,exchange_rate,record_date&filter=country_currency_desc:in:(${country}),record_date:gte:2023-09-15`;
 
       const response = await axios.get(apiUrl);
-      const exchangeRate  = response.data.data[0].exchange_rate;
-      const name =  response.data.data[0].country_currency_desc;
+      const exchangeRate = response.data.data[0].exchange_rate;
+      const name = response.data.data[0].country_currency_desc;
 
-      const newMoney = (currencyList[whereInCurrecyList] * exchangeRate).toFixed(2);
-      console.log(currencyList[whereInCurrecyList]);
+      const newMoney = (currencyList[whereInCurrencyList] * exchangeRate).toFixed(2);
 
-      const usAmount = currencyList[whereInCurrecyList];
-    
+      if (id == 0) {
+        console.log('Skipping insertion because id is 0');
+      } else {
+  
+        const usAmount = currencyList[whereInCurrencyList];
 
-      const insertQuery =`
-      INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id)
-      VALUES ($1, $2, $3, $4, $5)`;
-      const values = [usAmount, newMoney, name,formattedDate,id];
+        const insertQuery = `
+          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id)
+          VALUES ($1, $2, $3, $4, $5)`;
+        const values = [usAmount, newMoney, name, formattedDate, id];
 
-      console.log(insertQuery, values);
+        console.log(insertQuery, values);
 
-      await client.query(insertQuery, values);
-
-
-      console.log(insertQuery);
-
+        await client.query(insertQuery, values);
+      }
 
       // Extract the exchange rate from the API response and store it in the object
-      exchangeRates[country] = {newMoney, name};
-      whereInCurrecyList++; 
+      exchangeRates[country] = { newMoney, name };
+      whereInCurrencyList++;
     }
 
-
-    console.log(exchangeRates)
+    console.log(exchangeRates);
     // Respond with the exchange rates
     res.json(exchangeRates);
   } catch (error) {
@@ -187,6 +184,7 @@ app.get('/exchangeRates', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 
 //works: getting currency name 
 app.get('/apiCallGettingCurrency', async (req, res) => {

@@ -52,10 +52,14 @@ app.get('/gettingHistory', async (req, res) => {
     await client.connect();
     const id = req.query.id; // Assuming you pass email as a query parameter
 
-    const insertQuery = `SELECT "usAmount", "fAmount", "currencyName", "when"
-	                  FROM public."userHistory"
-                    WHERE "id" = $1`;
-    const values = [id];
+    const insertQuery = `
+  SELECT "usAmount", "fAmount", "currencyName", "when", "firstCurrencyName"
+  FROM public."userHistory"
+  WHERE "id" = $1
+  ORDER BY "when" DESC;`; // Order by "when" column in descending order
+
+const values = [id];
+
 
 
    const result = await client.query(insertQuery, values);
@@ -63,7 +67,7 @@ app.get('/gettingHistory', async (req, res) => {
     
     const data = result.rows;
 
-    console.log(result.rows);
+    console.log(data);
 
     client.end();
     res.json(data);

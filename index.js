@@ -320,7 +320,9 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
       const amountInUSD = currencies / listEchangeRates[0];
     
       // Convert USD to MXN
-      const newMoney = amountInUSD * listEchangeRates[1];
+      const newMoney = (amountInUSD * listEchangeRates[1]).toFixed(2);
+
+      
 
       const name = listCountry[1]
 

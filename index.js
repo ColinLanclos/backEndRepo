@@ -419,7 +419,7 @@ app.post('/login', async (req, res) => {
       res.status(200).json({ message: 'Authentication successful', id: id });
     } else {
       // Passwords do not match, authentication failed
-      res.status(401).json({ message: 'Authentication failed' });
+      res.status(401).json({ message: 'Password Incorrect' });
     }
 
     client.end();

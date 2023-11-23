@@ -299,6 +299,7 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
 
     const listEchangeRates = [];
     const listCountry = [];
+    const country_currency_descList= [];
 
     // whereInCurrencyList
     whereInCurrencyList = 0;
@@ -312,6 +313,8 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
 
       listEchangeRates.push(exchangeRate) 
       listCountry.push(country)
+      country_currency_descList.push(name)
+
 
       console.log(listEchangeRates)
       console.log(listCountry)
@@ -336,7 +339,7 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
         const insertQuery = `
           INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName")
           VALUES ($1, $2, $3, $4, $5,$6)`;
-        const values = [usAmount, newMoney, listCountry[0], formattedDate, id,listCountry[1]];
+        const values = [usAmount, newMoney, country_currency_descList[1], formattedDate, id,country_currency_descList[0]];
 
         console.log(insertQuery, values);
 

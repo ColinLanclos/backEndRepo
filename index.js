@@ -53,10 +53,9 @@ app.get('/gettingHistory', async (req, res) => {
     const id = req.query.id; // Assuming you pass email as a query parameter
 
     const insertQuery = `
-  SELECT "usAmount", "fAmount", "currencyName", "when", "firstCurrencyName"
+  SELECT "usAmount", "fAmount", "currencyName", "when", "firstCurrencyName",exchange_rate
   FROM public."userHistory"
-  WHERE "id" = $1
-  ORDER BY "when" DESC;`; // Order by "when" column in descending order
+  WHERE "id" = $1;`; // Order by "when" column in descending order
 
 const values = [id];
 
@@ -151,11 +150,24 @@ app.get('/exchangeRates', async (req, res) => {
     whereInCurrencyList = 0;
     // Loop through the list of countries and make API requests for each
     for (const country of countryList) {
-      const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=country_currency_desc,exchange_rate,record_date&filter=currency:in:(${country}),record_date:gte:2023-09-15`;
 
-      const response = await axios.get(apiUrl);
+      const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange`;
+
+      let filter = `country_currency_desc:eq:${country}`
+
+      const query = {"fields": "country_currency_desc,exchange_rate,record_date",
+                    "filter": `${filter}`}
+      let queryString = new URLSearchParams(query);
+
+
+      const finalUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?${queryString}` + ',record_date:gte:2023-09-15'
+
+      console.log(" ")
+
+      const response = await axios.get(finalUrl);
       const exchangeRate = response.data.data[0].exchange_rate;
       const name = response.data.data[0].country_currency_desc;
+      console.log(name)
 
       const newMoney = (currencyList[whereInCurrencyList] * exchangeRate).toFixed(2);
 
@@ -166,9 +178,9 @@ app.get('/exchangeRates', async (req, res) => {
         const usAmount = currencyList[whereInCurrencyList];
 
         const insertQuery = `
-          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName")
-          VALUES ($1, $2, $3, $4, $5,$6)`;
-        const values = [usAmount, newMoney, name, formattedDate, id,"UNITED STATES-DOLLAR"];
+          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName", exchange_rate)
+          VALUES ($1, $2, $3, $4, $5,$6,$7)`;
+        const values = [usAmount, newMoney, name, formattedDate, id,"UNITED STATES-DOLLAR", exchangeRate];
 
         console.log(insertQuery, values);
 
@@ -226,9 +238,19 @@ app.get('/eachangeRatesToUS',async(req,res) =>{
     whereInCurrencyList = 0;
     // Loop through the list of countries and make API requests for each
     for (const country of countryList) {
-      const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=country_currency_desc,exchange_rate,record_date&filter=currency:in:(${country}),record_date:gte:2023-09-15`;
+      const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange`;
 
-      const response = await axios.get(apiUrl);
+      let filter = `country_currency_desc:eq:${country}`
+
+      const query = {"fields": "country_currency_desc,exchange_rate,record_date",
+                    "filter": `${filter}`}
+      let queryString = new URLSearchParams(query);
+
+
+      const finalUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?${queryString}` + ',record_date:gte:2023-09-15'
+
+
+      const response = await axios.get(finalUrl);
       const exchangeRate = response.data.data[0].exchange_rate;
       const name = response.data.data[0].country_currency_desc;
 
@@ -241,9 +263,9 @@ app.get('/eachangeRatesToUS',async(req,res) =>{
         const usAmount = currencyList[whereInCurrencyList];
 
         const insertQuery = `
-          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName")
-          VALUES ($1, $2, $3, $4, $5,$6)`;
-        const values = [usAmount, newMoney,"UNITED STATES-DOLLAR", formattedDate, id,name];
+          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName", exchange_rate)
+          VALUES ($1, $2, $3, $4, $5,$6,$7)`;
+        const values = [usAmount, newMoney,"UNITED STATES-DOLLAR", formattedDate, id,name,exchangeRate];
 
         console.log(insertQuery, values);
 
@@ -294,6 +316,8 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
     const countryList = countries.split(',');
     const currencyList = currencies.split(',');
 
+    console.log(countryList)
+
     // Initialize an object to store exchange rates
     const exchangeRates = {};
 
@@ -305,11 +329,22 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
     whereInCurrencyList = 0;
     // Loop through the list of countries and make API requests for each
     for (const country of countryList) {
-      const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?fields=country_currency_desc,exchange_rate,record_date&filter=currency:in:(${country}),record_date:gte:2023-09-15`;
+      const apiUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange`;
 
-      const response = await axios.get(apiUrl);
-      const exchangeRate = response.data.data[0].exchange_rate;
-      const name = response.data.data[0].country_currency_desc;
+      let filter = `country_currency_desc:eq:${country}`
+      console.log(filter)
+
+      let query = {"fields": "country_currency_desc,exchange_rate,record_date",
+                    "filter": `${filter}`}
+      let queryString = new URLSearchParams(query);
+
+
+
+      let finalUrl = `https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/od/rates_of_exchange?${queryString}` + ',record_date:gte:2023-09-15'
+
+      let response = await axios.get(finalUrl);
+      let exchangeRate = response.data.data[0].exchange_rate;
+      let name = response.data.data[0].country_currency_desc;
 
       listEchangeRates.push(exchangeRate) 
       listCountry.push(country)
@@ -325,6 +360,11 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
       // Convert USD to MXN
       const newMoney = (amountInUSD * listEchangeRates[1]).toFixed(2);
 
+      const rateAtoUSD = listEchangeRates[0];
+      const rateBtoUSD = listEchangeRates[1];
+
+      const rateAtoB = rateAtoUSD / rateBtoUSD; 
+
       
 
       const name = listCountry[1]
@@ -337,9 +377,9 @@ app.get('/eachangeRatesRandom', async(req,res)=>{
         const usAmount = currencyList[whereInCurrencyList];
 
         const insertQuery = `
-          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName")
-          VALUES ($1, $2, $3, $4, $5,$6)`;
-        const values = [usAmount, newMoney, country_currency_descList[1], formattedDate, id,country_currency_descList[0]];
+          INSERT INTO public."userHistory" ("usAmount", "fAmount", "currencyName", "when", id, "firstCurrencyName",exchange_rate)
+          VALUES ($1, $2, $3, $4, $5,$6,$7)`;
+        const values = [usAmount, newMoney, country_currency_descList[1], formattedDate, id,country_currency_descList[0],rateAtoB];
 
         console.log(insertQuery, values);
 
